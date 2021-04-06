@@ -1,1 +1,99 @@
-hello
+Explaining DOCKERFILE Code
+
+
+FROM node:12 #Official base image of node being used basically same as the version of nodejs you are using for your application
+WORKDIR /app #This will tell our working directory is /app
+ADD . /app #This will add all the files to /app working directory
+RUN npm install #This will run this command
+EXPOSE 3000 #This will expose port 3000 for this nodejs application use
+CMD npm start #start our nodejs server using npm start
+
+First running this application without DOcker
+1) go to jenkins and got to manage jenkins->manage plugins->available->search nodejs ->install NodeJS Plugin
+2)copy git url for docker-demo repository
+3)Make a freestyle project using jenkins ui and name it nodeJs example without docker app
+4)Traditional way of creating jenkins jobs
+5)Source Code Management-> Select Git-> enter git url for docker-demo repository6)In Build Section->select Execute shell-> inside shell write-> npm install->For doing this npm install ->Build Environment Section-> Provide Node & npm bin/folder to PATH-> for selecting thiss need to install node->Click On Save->GO to Manage Jenkins->Global tool configuration->Under NodeJs section-> Add nodeJs-> give name as nodejs ,set version as NodeJS 7.10.0->click on SAVE-> GO back to NodeJS application -> selection the nodejs you set in Build Environment section ->Save->Build this application
+7) Console Output Explaination
+You can check that this application or job created is available in /var/jenkins_home/workspace directory
+8)You will notice we have DOCKERFILE and other files in our repository that is we have package everythin related to building this project and runnic it in docker container and now we can run this project using docker
+
+Running this NodeJS application using DOCKER
+
+1)Install CloudBees Docker Custom Build Environment Plugin
+2)Confirm that Docker is installed and running in our system AND since this jenkins is already running in our DOCKER so it is verified SO we need to make sure that this jenkins container on which jenkins is running could access the Docker socket Which in Linux is a file that can be used to communicate with the Docker API.
+To make sure that you can execute Docker and that you have acess to the Docker in this Digital Ocean Machine, I have created my own Docker Image That is also available on my gitHub Repository jenkins-docker
+And this repository has the same jenkins image but then bundled with Docker
+
+EXPLAINATION of Dockerfile CODE in jenkins-docker REPOSITORY
+
+ 
+FROM jenkins/jenkins:lts #Same jenkins image which we are using to run our jenkins container
+USER root #this means the following command are being executed as root USER
+
+RUN mkdir -p /tmp/download && \ 
+ curl -L https://download.docker.com/linux/static/stable/x86_64/docker-18.03.1-ce.tgz | tar -xz -C /tmp/download && \ #This means we are downloading the Docker Client
+ rm -rf /tmp/download/docker/dockerd && \
+ mv /tmp/download/docker/docker* /usr/local/bin/ && \ #This means we move the Docker Binary to local bin
+ rm -rf /tmp/download && \
+ groupadd -g 999 docker && \ #and Then Add a docker group
+ usermod -aG staff,docker jenkins #and make Sure That Jenkins has access to tjis docker group
+
+USER jenkins #And then fallback again in USER jenkins
+
+#AND WHEN YOU run this DOcker Image as a container on our Digital Ocean Host server or System or droplet instead of a normal jenkins one ; YOu will have access to the docker client and we can also expose the docker socket so that the Docker client can access the Docker API That is running on our digital ocean machine So from within our Docker container we can access our host Machine ,our Docker running on our host machine just so we can start new containers
+Lets see  How we do that
+STEPS TO BE FOLLOWED
+1)Open terminal
+2)docker ps -a
+3)sudo git clone https://github.com/Xueyan23/jenkins-docker.git in our root directory
+4)cd /jenkins-docker
+5) So here we have our Dockerfile you can check it content 
+@)cat Dockerfile
+6)We are going to build this docker image and then add dot ; dot means current directory
+@)sudo docker build -t jenkins-docker .
+This command will download the Dockerfile as well as build the image, so now I have the jenkins docker image built
+That is the same as the jenkins image we are running currently + the docker client
+7)Now we stop the old jenkins container 
+@)docker stop jenkins
+8)We don't need this container anymore as we have created new jenkins container with Docker Client
+@)docker rm jenkins
+9)Note that the volume of this deleted container is mapped to the directory /var/jenkins_home/ So, all the content of deleted jenkins container is retained in this directory it does not go anywhere
+@)ls /var/jenkins_home
+10) Now what we want to do is , I want to run this newly created container instead of our old jenkins container So this is the command that I run when we are in /jenkins-docker directory
+@)docker run -p 8080:8080 -p 50000:50000 -v /var/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -d --name jenkins jenkins-docker #In this we have mapped one more volume /var/run/docker.sock to /var/run/docker.sock directory So that I have this file , this socket , available in my new container and this is actually the file that you need for the Docker client that we installed here using commands written in Dockerfile to communicate with the docker that is running on our host system , our Ubuntu Digital Ocean Machine. And WE have also changed our previous jenkins image name to new name- jenkins-docker
+11)sudo docker ps -a
+Now I have new image jenkins-docker still exposing the same ports , still have the name jenkins but now we are using /var/jenkins_home as well as we also have /var/run/docker.sock
+12)ls -ahl /var/run/docker.sock
+this is the /var/run/docker.sock which is owned by root and the group Docker.
+Thats why we also executed this command --> groupadd -g 999 docker inside our Dockerfile within our container and added jenkins to this Docker group inside Dockerfile which is tthe same Docker group as her in our system so, that our jenkins USER should now be able to execute Docker iMages
+13) Let's test this before we test this in jenkins
+@)docker exec -it jenkins bash #-it means if you wnt a terminal, jenkins is name of the container that i wanna execute something in and we can execute a command or we can open a shell
+13) now we are inside the container jenkins and I should also have /var/run/docker.sock available inside this container
+@)ls -ahl /var/run/docker.sock
+And I should also be able to do 
+@)sudo docker ps -a
+Within this container so, we now we have access to the docker commands within this container and docker ps command in my container is communicating with this socket /var/run/docker.sock  Which is the DOCKER API in my HOST machine or system
+So now we can build and create new images and use this Docker client within our jenkins container
+IF we were not running jenkins as a container it would have been much simpler because you could have just installed Docker and then you are done with it but we made it ourself a little bit more complicated. WE are already running in a Docker container so that's why we have to do this.This is it so now we should be able to run Docker commands 
+14)GO back to jenkins dashboard
+15) Create new freestyle project with name as implementing nodeJs example using docker
+All the configuration will be same as previous example and add some new things
+In Build step section->Docker build and publish
+choose a repository name inside your dockerhub
+->registry credentials ->click add->Username and password ->Just add it-> and select this credential in dropdown
+->In advance options you can also go to Docker installation section and install docker by jenkins and then go to -> global tool configuration and set for docker like you set for nodejs and select that here-> but we have bundled together separate docker plugin because we need to configure our docker container further and make sure that the socket is also available-> but this docker installation is good if you have a remote Dpcker server somewhere.But if the Docker is running on the same machinethen it's easier to do it the way we did.
+17) we don't need the build step as npm install command inside our Dockerfile is already executed
+16) Save it-> build it
+17) we have finally pushed the app to dockerhub as docker image
+18) you can TEST this application image inside Dockerhub in any pc but we are going to test it in our Digital Ocean machine.
+19) you access this droplet or machine or terminal of system and pull this application image
+@)sudo docker pull <repository name inside dockerhub>
+20)Run this docker image
+@)docker run -p 3000:3000 -d --name my-nodejs-app-using-docker <repository name or image name inside dockerhub> # -p 3000:3000 means we expose port 3000 for this application -d means we are running it in background
+21)docker ps
+22)curl localhost:3000 #print Hello world
+23) in our frontend browser search localhost:3000
+24)Made Nodejs Application within Docker->Published it->Now we can access it from anywhere
+25)A lot of people are containerizing their app nowadays
+
