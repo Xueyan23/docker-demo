@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Yeon+Sung&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Yeon+Sung&family=ZCOOL+QingKe+HuangYou&display=swap');
+*{
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+#navbar{
+background-color: #d43b3b;
+font-family: 'Yeon Sung' ;
+padding: 18px, 14px;
+}
+#navbar ul{
+display: flex;
+flex-direction: row;
+/* justify-content: center;Horizontally center */
+align-items: center;/*Vertically center*/
+padding: 14px 40px;
+}
+#navbar li{
+list-style: none;
+}
+#navbar li a{
+color: azure;
+text-decoration: none;
+padding: 13px 20px;
+font-size: 30px;
+}
+#navbar li a:hover{
+color: black;
+}
+
+#introSection{
+color: white;
+display: flex;
+flex-direction: column;
+justify-content: center;
+font-family: 'ZCOOL QingKe HuangYou';
+font-size: 65px;
+align-items: center;
+background: center/cover no-repeat url("../static/michael-afonso-nZU76qWy-T8-unsplash.jpg") ;
+height: 425px;
+background-color: red;
+}
+#introSection div.small{
+font-size: 52px;
+padding: 5px;
+}
+#sponsorsSection{
+height: 300px;
+background-color: #fbd6d6c7;
+justify-content: center;
+}
+#sponsorsSection h2{
+font-family: 'Yeon Sung';
+display: block;
+font-size: 1.5em;
+margin-block-start: 0.83em;
+margin-block-end: 0.83em;
+margin-inline-start: 600px;
+margin-inline-end: 0px;
+font-weight: bold;
+}
+#missionSection{
+height: 326px;
+width: 67%;
+margin: auto;
+}
+
+#missionSection h2{
+font-size: 36px;
+font-family: 'Yeon Sung' ;
+text-align: center;
+padding-top: 12px;
+}
+.card{
+display: inline-block;
+border: 2px solid black;
+border-radius: 10px;
+width: 28%;
+margin: 23px 20px;
+height: 209px;
+}
+.card h3{
+text-align: center;
+margin: 0 12px;
+margin-top: 24px;
+font-family: Arial, Helvetica, sans-serif;
+}
+.card-box{
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.card-img{
+height: 131px;
+padding: 0 14px;
+margin: 5px 9px;
+}
+.card-img img{
+height: inherit; /*isse image card ke andar perfectly fit ho jyegi ismein child ki height ka size parent ke height ke
+size ke equal ho jaata hai*/
+}
+#logo{
+display: flex;
+color: white;
+align-items: center;
+margin: 0 14px;
+font-size: 28px;
+margin-right: 40px;
+}
+#logo img{
+height: 42px;
+filter: invert(1);/*isse logo image ka color black hai toh white ho jyega and vice-versa*/
+}
+#sponsors{
+height: 120px;
+max-width: 100px;
+display: flex;
+margin-left: 410px;
+}
+
+.spImage{
+height: 80px;
+margin: 20px;
+}
+
+
+#footer{
+display: flex;
+justify-content: center;
+align-items: center;
+background-color: black;
+height: 100px;
+color: azure;
+}
